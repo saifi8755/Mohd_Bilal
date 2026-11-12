@@ -1,0 +1,10 @@
+import {projectDetails,emptyProjectDetails} from './project-details';
+import 'server-only';
+import {cookies} from 'next/headers';
+import {initial,type Content} from './content';
+import {backend,configured,authUser} from './supabase';
+export const ORIGIN=process.env.SITE_URL||(process.env.VERCEL_PROJECT_PRODUCTION_URL?'https://'+process.env.VERCEL_PROJECT_PRODUCTION_URL:'http://localhost:3000');
+export async function isAdmin(){const token=(await cookies()).get('portfolio_session')?.value;if(!token||!process.env.ADMIN_EMAIL)return false;const u=await authUser(token);return !!u&&u.email?.toLowerCase()===process.env.ADMIN_EMAIL.toLowerCase()&&!!u.email_confirmed_at;}
+export async function readContent(id='published'):Promise<{content:Content;version:number}>{if(!configured())return {content:initial,version:0};try{const rows=await backend('/rest/v1/content?id=eq.'+encodeURIComponent(id)+'&select=body,version');if(!rows||!rows.length)return {content:initial,version:0};const saved=rows[0].body;saved.profile={...initial.profile,...saved.profile};saved.projects=(saved.projects||initial.projects).map((p:any)=>({...emptyProjectDetails,...projectDetails[p.slug],...p}));saved.visuals={...initial.visuals,...saved.visuals};saved.socialLinks=saved.socialLinks??initial.socialLinks;saved.services=(saved.services||initial.services).map((s:any,i:number)=>({...initial.services[i%initial.services.length],...s}));return {content:saved,version:rows[0].version};}catch(e){console.error('Failed to fetch from Supabase, using local content fallback:',e);return {content:initial,version:0};}}
+export function sameOrigin(req:Request){const origin=req.headers.get('origin');if(!origin)return false;try{const o=new URL(origin);if(o.origin===new URL(ORIGIN).origin)return true;const host=req.headers.get('x-forwarded-host')||req.headers.get('host');return !!host&&o.host===host;}catch{return false;}}
+export function json(data:unknown,status=200){return Response.json(data,{status,headers:{'Cache-Control':'no-store'}});}

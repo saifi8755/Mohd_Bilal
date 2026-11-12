@@ -1,0 +1,1 @@
+import {ORIGIN} from '@/lib/server';export function GET(){return new Response(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /admin1101\nDisallow: /login\nDisallow: /api/\nDisallow: /preview\nSitemap: ${ORIGIN}/sitemap.xml\n`,{headers:{'Content-Type':'text/plain'}})}

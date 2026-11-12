@@ -1,0 +1,1 @@
+import {backend} from '@/lib/supabase';import {isAdmin,json} from '@/lib/server';export async function GET(){if(!await isAdmin())return json({error:'Owner access required.'},403);return json(await backend('/rest/v1/revisions?select=id,body,created_at&order=id.desc&limit=10'));}

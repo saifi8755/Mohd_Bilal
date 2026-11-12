@@ -1,0 +1,1 @@
+import Login from '../login/login';import {isAdmin} from '@/lib/server';import {redirect} from 'next/navigation';export const dynamic='force-dynamic';export const metadata={title:'Admin login | Bilal Saifi',robots:{index:false,follow:false}};export default async function Page(){if(await isAdmin())redirect('/admin1101/dashboard');return <Login/>}
